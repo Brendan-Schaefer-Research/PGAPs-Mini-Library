@@ -1,0 +1,70 @@
+>list of token values (context window size)
+last ← GET_INPUT()
+
+>vector encoding
+for i ← 0…(last.length-1) do
+  last[i] ← encoders[last[i]]
+end for
+
+>add identity vector
+for i ← 0…(last.length-1) do
+   last[i] ← last[i] + identities[i]
+end for
+
+>positional encoding
+for i ← 0…(last.length-1) do
+   last[i] ← last[i] + TENSOR(POSITIONERS(i),last[i].shape)
+end for
+
+>pgap model
+for i ← 0…(layers-1) do
+  kprod ← TENSOR(0,last.shape)
+  >run attention networks
+  for j ← 0…(last.length-1) do
+    >output is [final layer,full unactivated network]
+    output ← LINEAR(last[j],weights[i][j],biases[i][j])
+    >scale output[0] to avg 0
+    output[0] ← output[0] - TENSOR(0.5,output[0].shape)
+
+    >update vector encoding
+    last[j] ← output[0].SLICE(0,esize)
+
+    >assign attention value
+    kprod[j] ← output[0].SLICE(esize,2*esize)
+
+    >store unactivated for backpropagation
+    neuronstore[i][j] ← output[1]
+  end for
+
+
+  >run attention network
+  atten ← LINEAR(CONCAT(kprod),apweights[ll],apbiases[ll])
+  >scale entire last layer to avg 0
+  atten[0] ← atten[0] - TENSOR(0.5,atten[0].shape)
+
+  >store unactivated for backpropagation
+  apneur[ll] = atten[1]
+
+  for j ← 0…(last.length-1) do
+    >assign slice of attention pattern
+    patt = atten[0].SLICE(j*esize,(j+1)*esize)
+
+    >add corresponding section of attention to last
+    last[j] ← last[j] + patt
+  end for
+
+end for
+
+>average all outputs
+avglast ← TENSOR(0,esize)
+for i ← 0…(last.length-1) do
+  avglast ← avglast + last[i]
+end for
+avglast ← avglast / TENSOR(last.length,esize)
+
+>run decoding network with no bias
+encout ← LINEAR(avglast,TRANSPOSE(encoders),[])
+>store for backpropagation
+encneur ← encout[1]
+
+return encout[0]
