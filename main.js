@@ -75,35 +75,6 @@ function TENSOR(fill,shapearr) {
 
 }
 
-function backprop(allweights,allbiases,nstore,costpertoken,activated) {
-	
-	for (bb = allweights.length-1; bb >= 0; bb--) {//layer
-		for (aa = 0; aa < allweights[bb].length; aa++) {//first neuron
-			for (aa1 = 0; aa1 < allweights[bb][aa].length; aa1++) {//second neuron
-				let gfd = getfuncderiv(nstore[bb+1][aa1]);
-				if (activated == false) {
-					gfd = 1;
-				}
-				allweights[bb][aa][aa1] += 
-					activate([nstore[bb][aa]])[0] * //in terms of zl- prev neuron is what influences zl
-					gfd * //in terms of al- derivative of relu w/ respect to zl
-					costpertoken[bb+1][aa1] *  //in terms of cost- desired change to cost
-					learningrate;
-				allbiases[bb][aa1] += 
-					gfd * //in terms of al- derivative of prev w/ respect to zl
-					costpertoken[bb+1][aa1] *  //in terms of cost- desired change to cost down the line
-					learningrate;
-				costpertoken[bb][aa] += 
-					allweights[bb][aa][aa1] * //in terms of zl- weight is what influences zl
-					gfd * //in terms of al- derivative of relu w/ respect to zl
-					costpertoken[bb+1][aa1];  //in terms of cost- desired change to cost down the line
-			}
-		}
-	}
-	return costpertoken;
-	
-}
-
 function trainPGAP(disp) {
 	
 	let costarr = runexample(getinput(),false);
