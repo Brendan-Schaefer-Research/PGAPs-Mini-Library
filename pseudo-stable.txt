@@ -13,18 +13,18 @@ end for
 
 >positional encoding
 for i ← 0…(last.length-1) do
-   last[i] ← last[i] + TENSOR(POSITIONERS(i),last[i].shape)
+   last[i] ← last[i] + TENSOR(POSITIONERS(i),SHAPE(last[i]))
 end for
 
 >pgap model
 for i ← 0…(layers-1) do
-  kprod ← TENSOR(0,last.shape)
+  kprod ← TENSOR(0,SHAPE(last))
   >run attention networks
   for j ← 0…(last.length-1) do
     >output is [final layer,full unactivated network]
     output ← LINEAR(last[j],weights[i][j],biases[i][j])
     >scale output[0] to avg 0
-    output[0] ← output[0] - TENSOR(0.5,output[0].shape)
+    output[0] ← output[0] - TENSOR(0.5,SHAPE(output[0]))
 
     >update vector encoding
     last[j] ← output[0].SLICE(0,esize)
@@ -36,18 +36,17 @@ for i ← 0…(layers-1) do
     neuronstore[i][j] ← output[1]
   end for
 
-
   >run attention network
   atten ← LINEAR(CONCAT(kprod),apweights[ll],apbiases[ll])
   >scale entire last layer to avg 0
-  atten[0] ← atten[0] - TENSOR(0.5,atten[0].shape)
+  atten[0] ← atten[0] - TENSOR(0.5,SHAPE(atten[0]))
 
   >store unactivated for backpropagation
-  apneur[ll] = atten[1]
+  apneur[ll] ← atten[1]
 
   for j ← 0…(last.length-1) do
     >assign slice of attention pattern
-    patt = atten[0].SLICE(j*esize,(j+1)*esize)
+    patt ← atten[0].SLICE(j*esize,(j+1)*esize)
 
     >add corresponding section of attention to last
     last[j] ← last[j] + patt
@@ -67,4 +66,4 @@ encout ← LINEAR(avglast,TRANSPOSE(encoders),[])
 >store for backpropagation
 encneur ← encout[1]
 
-return encout[0]
+return SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
