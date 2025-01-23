@@ -1,4 +1,4 @@
-function onelay(ARR,weightsarr,biasesarr) {
+function ONELAY(ARR,weightsarr,biasesarr) {
 
 	let returnarr = matrixmult([ARR],weightsarr)[0];
 	if (addbias == true && biasesarr !== undefined) {
