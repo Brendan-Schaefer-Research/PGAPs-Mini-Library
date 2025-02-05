@@ -1,6 +1,6 @@
 function LINEAR(input,allwei,allbi) {
 
-  return runlinear(input,allwei.length,false,[allwei],[allbi]);
+  return runlinear(input,1,false,[allwei],[allbi]);
 
 }
 
