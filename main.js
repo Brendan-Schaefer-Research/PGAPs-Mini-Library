@@ -16,10 +16,12 @@ function BACKPROP(allweights,allbiases,nstore,costpertoken) {
 					gfd * //in terms of al- derivative of relu w/ respect to zl
 					costpertoken[aa1] *  //in terms of cost- desired change to cost
 					learningrate;
-				allbiases[bb][aa1] += 
-					gfd * //in terms of al- derivative of prev w/ respect to zl
-					costpertoken[aa1] *  //in terms of cost- desired change to cost down the line
-					learningrate;
+				if (allbiases !== false) {
+					allbiases[bb][aa1] += 
+						gfd * //in terms of al- derivative of prev w/ respect to zl
+						costpertoken[aa1] *  //in terms of cost- desired change to cost down the line
+						learningrate;
+				}
 				newcosts[aa] += 
 					allweights[bb][aa][aa1] * //in terms of zl- weight is what influences zl
 					gfd * //in terms of al- derivative of relu w/ respect to zl
