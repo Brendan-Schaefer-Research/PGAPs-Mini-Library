@@ -1,0 +1,27 @@
+for i ← weights.length-1…(-1) do
+  >declare new cost vec
+  newcost ← TENSOR(0,SHAPE(cost))
+  for j ← 0…(weights[i].length) do
+    for k ← 0…(weights[i][j].length) do
+      >overall activation derivative
+      gfd ← 1
+      if activate then 
+        gfd ← GETFUNCDERIV(neuronstore[i+1][k]) 
+      end if
+
+      >adjust weights
+      weights[i][j][k] ← weights[i][j][k] + 
+      cost[k]*gfd*ACTIVATE(neuronstore[i][j])*lr
+      
+      >adjust biases
+      biases[i][k] ← biases[i][k] + cost[k]*gfd*lr
+
+      >add to new cost
+      newcost[j] ← newcost[j] + weights[i][j][k]*cost[k]*gfd
+    end for
+  end for
+  >assign cost to new cost
+  cost ← newcost
+end for
+
+return cost
