@@ -4,34 +4,24 @@ function LINEAR(input,allwei,allbi) {
 
 }
 
-function BACKPROP(allweights,allbiases,nstore,costpertoken) {
-	
-	for (bb = allweights.length-1; bb >= 0; bb--) {//layer
-		let newcosts = maketensor(1,[allweights[bb].length],0);
-		for (aa = 0; aa < allweights[bb].length; aa++) {//first neuron
-			for (aa1 = 0; aa1 < allweights[bb][aa].length; aa1++) {//second neuron
-				let gfd = getfuncderiv(nstore[bb+1][aa1]);
-				allweights[bb][aa][aa1] += 
-					activate([nstore[bb][aa]])[0] * //in terms of zl- prev neuron is what influences zl
-					gfd * //in terms of al- derivative of relu w/ respect to zl
-					costpertoken[aa1] *  //in terms of cost- desired change to cost
-					learningrate;
-				if (allbiases !== false) {
-					allbiases[bb][aa1] += 
-						gfd * //in terms of al- derivative of prev w/ respect to zl
-						costpertoken[aa1] *  //in terms of cost- desired change to cost down the line
-						learningrate;
-				}
-				newcosts[aa] += 
-					allweights[bb][aa][aa1] * //in terms of zl- weight is what influences zl
-					gfd * //in terms of al- derivative of relu w/ respect to zl
-					costpertoken[aa1];  //in terms of cost- desired change to cost down the line
-			}
+function SHAPE(ARR1) {
+
+  let shapeARR = [ARR1.length];
+	for (ga = 0; ga < 6; ga++) {
+    let testv = dimen(false,ARR1,maketensor(1,[ga+2],0));
+		if (testv === undefined) {
+			break;
 		}
-		costpertoken = newcosts;
+	  shapeARR[ga+1] = testv.length;
 	}
-	return costpertoken;
-	
+  return shapeARR;
+
+}
+
+function TENSOR(fill,shapearr) {
+
+  return maketensor(shapearr.length,shapearr,fill);
+
 }
 
 function runPGAP(input) {
@@ -82,27 +72,6 @@ function runPGAP(input) {
 	
 	return encout[0];
 	
-}
-
-
-function SHAPE(ARR1) {
-
-  let shapeARR = [ARR1.length];
-	for (ga = 0; ga < 6; ga++) {
-    let testv = dimen(false,ARR1,maketensor(1,[ga+2],0));
-		if (testv === undefined) {
-			break;
-		}
-	  shapeARR[ga+1] = testv.length;
-	}
-  return shapeARR;
-
-}
-
-function TENSOR(fill,shapearr) {
-
-  return maketensor(shapearr.length,shapearr,fill);
-
 }
 
 function trainPGAP(disp) {
