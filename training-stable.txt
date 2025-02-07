@@ -1,0 +1,73 @@
+IN TINY SHAKESPEARE:
+>declare desired values matrix
+correctcheck ← TENSOR(0,SHAPE(pgapout))
+>change label token desired value
+correctcheck[label] ← 1
+
+>calculate cost vector
+rcost ← correctcheck - pgapout
+
+>scale label token and normalize cost vector
+rcost[label] ← rcost[label]*correctness
+rcost ← NORMALIZE(rcost,sureness)
+
+>train encoding network
+decoders ← TRANSPOSE(encoders)
+outcost ← BACKPROP([decoders],false,encneur,rcost)
+rcost ← TENSOR(outcost,[iterations]);
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+IN LTEF:
+>declare desired values matrix
+correctcheck ← TENSOR(0,SHAPE(pgapout))
+>change label tokens' desired values
+for i ← 0…(pgapout.length) do
+  correctcheck[i][label[i]] = 1
+end for
+
+>calculate cost matrix
+rcost ← correctcheck - pgapout
+
+>scale label tokens and normalize cost vectors
+for i ← 0…(pgapout.length) do
+  rcost[i][label[i]] ← rcost[i][label[i]]*correctness
+  rcost[i] ← NORMALIZE(rcost[i],sureness)
+end for
+
+>train encoding network
+for i ← 0…(pgapout.length) do
+  decoders ← TRANSPOSE(encoders)
+  rcost[i] ← BACKPROP([decoders],false,encneur,rcost[i])
+  encoders ← TRANSPOSE(decoders)
+end for
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+for i ← layers-1…(-1) do
+  >backpropagate attention network
+  outcost ← BACKPROP(
+    [apweights[i]],[apbiases[i]],apneur[i],CONCAT(rcost)
+  )
+  for j ← 0…(iterations) do
+    >get corresponding slice of attention backprop
+    acost ← outcost.SLICE(j*esize,(j+1)*esize)
+    >normalize attention cost vector
+    attencosts ← NORMALIZE(acost,sureness)
+    >create central mechanism cost vector
+    rcost[j] = concatenate([CA(rcost[j]),acost])
+  end for
+
+  >backpropagate central mechanism
+  for j ← 0…(iterations) do
+    >run backpropagation
+    outcost ← BACKPROP(
+      weights[i][j],biases[i][j],neuronstore[i][j],rcost[j]
+    )
+    >normalize cost vector
+    outcost ← NORMALIZE(outcost,sureness)
+  end for
+end for
+
+>add final cost matrix to identities
+identities ← identities + rcost*lr
