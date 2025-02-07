@@ -14,7 +14,8 @@ for i ← weights.length-1…(-1) do
       cost[k]*gfd*ACTIVATE(neuronstore[i][j])*lr
       
       >adjust biases
-      biases[i][k] ← biases[i][k] + cost[k]*gfd*lr
+      biases[i][k] ← biases[i][k] + 
+      cost[k]*gfd*ACTIVATE(neuronstore[i][j])*lr
 
       >add to new cost
       newcost[j] ← newcost[j] + weights[i][j][k]*cost[k]*gfd
