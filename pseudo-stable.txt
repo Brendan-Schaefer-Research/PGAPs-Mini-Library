@@ -1,26 +1,23 @@
->list of token values (context window size)
-last ← GET_INPUT()
-
 >vector encoding
-for i ← 0…(last.length-1) do
+for i ← 0…(last.length) do
   last[i] ← encoders[last[i]]
 end for
 
 >add identity vector
-for i ← 0…(last.length-1) do
+for i ← 0…(last.length) do
    last[i] ← last[i] + identities[i]
 end for
 
 >positional encoding
-for i ← 0…(last.length-1) do
+for i ← 0…(last.length) do
    last[i] ← last[i] + TENSOR(POSITIONERS(i),SHAPE(last[i]))
 end for
 
 >pgap model
-for i ← 0…(layers-1) do
+for i ← 0…(layers) do
   kprod ← TENSOR(0,SHAPE(last))
   >run attention networks
-  for j ← 0…(last.length-1) do
+  for j ← 0…(last.length) do
     >output is [final layer,full unactivated network]
     output ← LINEAR(last[j],weights[i][j],biases[i][j])
     >scale output[0] to avg 0
@@ -42,28 +39,25 @@ for i ← 0…(layers-1) do
   atten[0] ← atten[0] - TENSOR(0.5,SHAPE(atten[0]))
 
   >store unactivated for backpropagation
-  apneur[ll] ← atten[1]
+  apneur[i] ← atten[1]
 
-  for j ← 0…(last.length-1) do
+  for j ← 0…(last.length) do
     >assign slice of attention pattern
     patt ← atten[0].SLICE(j*esize,(j+1)*esize)
 
     >add corresponding section of attention to last
     last[j] ← last[j] + patt
   end for
-
 end for
 
->average all outputs
-avglast ← TENSOR(0,esize)
-for i ← 0…(last.length-1) do
-  avglast ← avglast + last[i]
+>decode all iteration outputs
+for i ← 0…(last.length) do
+  >run decoding network without bias
+  encout ← LINEAR(last[i],TRANSPOSE(encoders))
+  >norm and softmax output
+  last[i] = SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
+  >store for backpropagation
+  encneur[i] = encout[1]  
 end for
-avglast ← avglast / TENSOR(last.length,esize)
 
->run decoding network with no bias
-encout ← LINEAR(avglast,TRANSPOSE(encoders),[])
->store for backpropagation
-encneur ← encout[1]
-
-return SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
+return last
