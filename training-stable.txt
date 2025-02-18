@@ -1,24 +1,3 @@
-IN TINY SHAKESPEARE:
->declare desired values matrix
-correctcheck ← TENSOR(0,SHAPE(pgapout))
->change label token desired value
-correctcheck[label] ← 1
-
->calculate cost vector
-rcost ← correctcheck - pgapout
-
->scale label token and normalize cost vector
-rcost[label] ← rcost[label]*correctness
-rcost ← NORMALIZE(rcost,sureness)
-
->train encoding network
-decoders ← TRANSPOSE(encoders)
-outcost ← BACKPROP([decoders],false,encneur,rcost)
-rcost ← TENSOR(outcost,[iterations]);
-________________________________________________________________________________________________________________________________________________________________________________________________________________________________
-
-
-IN LTEF:
 >declare desired values matrix
 correctcheck ← TENSOR(0,SHAPE(pgapout))
 >change label tokens' desired values
@@ -41,8 +20,6 @@ for i ← 0…(pgapout.length) do
   rcost[i] ← BACKPROP([decoders],false,encneur,rcost[i])
   encoders ← TRANSPOSE(decoders)
 end for
-________________________________________________________________________________________________________________________________________________________________________________________________________________________________
-
 
 for i ← layers-1…(-1) do
   >backpropagate attention network
