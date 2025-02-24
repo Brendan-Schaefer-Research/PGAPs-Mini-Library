@@ -53,22 +53,6 @@ end for
 encoders ← avgenc/TENSOR(pgapout.length,SHAPE(avgenc))
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
->calculate cost matrix
-rcost ← correctcheck - pgapout
-
->scale label tokens and normalize cost vectors
-for i ← 0…(pgapout.length) do
-  rcost[i][label[i]] ← rcost[i][label[i]]*correctness
-  rcost[i] ← NORMALIZE(rcost[i],sureness)
-end for
-
->train encoding network
-for i ← 0…(pgapout.length) do
-  decoders ← TRANSPOSE(encoders)
-  rcost[i] ← BACKPROP([decoders],false,encneur,rcost[i])
-  encoders ← TRANSPOSE(decoders)
-end for
-
 for i ← layers-1…(-1) do
   >backpropagate attention network
   outcost ← BACKPROP(
