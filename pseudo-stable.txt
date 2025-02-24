@@ -50,14 +50,34 @@ for i ← 0…(layers) do
   end for
 end for
 
+IN TINY SHAKESPEARE:
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+>average all outputs
+avglast ← TENSOR(0,esize)
+for i ← 0…(last.length) do
+  avglast ← avglast + last[i]
+end for
+avglast ← avglast / TENSOR(last.length,esize)
+
+>run decoding network with no bias
+encout ← LINEAR(avglast,TRANSPOSE(encoders))
+>store for backpropagation
+encneur ← encout[1]
+
+return SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+IN LTEF:
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 >decode all iteration outputs
 for i ← 0…(last.length) do
-  >run decoding network without bias
+  >run decoding network
   encout ← LINEAR(last[i],TRANSPOSE(encoders))
-  >norm and softmax output
-  last[i] = SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
+  last[i] ← SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
   >store for backpropagation
-  encneur[i] = encout[1]  
+  encneur[i] ← encout[1]  
 end for
 
 return last
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
