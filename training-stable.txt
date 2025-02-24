@@ -1,9 +1,57 @@
+IN TINY SHAKESPEARE:
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 >declare desired values matrix
 correctcheck ← TENSOR(0,SHAPE(pgapout))
->change label tokens' desired values
+>change label token desired value
+correctcheck[label] ← 1
+>calculate cost vector
+rcost ← correctcheck - pgapout
+
+>multiply by softmax derivative vector
+sderiv ← pgapout*(TENSOR(1,SHAPE(tokens))-pgapout)
+rcost ← rcost*sderiv
+
+>scale label token and normalize cost vector
+rcost[label] ← rcost[label]*correctness
+rcost ← NORMALIZE(rcost,sureness)
+
+>train encoding network
+decoders ← TRANSPOSE(encoders)
+outcost ← BACKPROP([decoders],false,encneur,rcost)
+rcost ← TENSOR(outcost,[iterations]);
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+IN WEF:
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+>declare desired values matrix
+correctcheck ← TENSOR(0,SHAPE(pgapout))
 for i ← 0…(pgapout.length) do
-  correctcheck[i][label[i]] = 1
+  correctcheck[i][label[i]] ← 1
 end for
+
+>calculate cost matrix
+rcost ← correctcheck - pgapout
+
+>scale label tokens and normalize cost vectors
+for i ← 0…(pgapout.length) do
+  >multiply by softmax derivative vector
+  sderiv ← pgapout[i]*(TENSOR(1,SHAPE(tokens))-pgapout[i])
+  rcost[i] ← rcost[i]*sderiv
+
+  >scale rcost
+  rcost[i][label[i]] ← rcost[i][label[i]]*correctness
+  rcost[i] ← NORMALIZE(rcost[i],sureness)
+end for
+
+>train encoding network
+avgenc ← TENSOR(0,SHAPE(TRANSPOSE(encoders)))
+for i ← 0…(pgapout.length) do
+  decoders ← TRANSPOSE(encoders)
+  rcost[i] ← BACKPROP([decoders],false,encneur,rcost[i])
+  avgenc ← avgenc+decoders
+end for
+encoders ← avgenc/TENSOR(pgapout.length,SHAPE(avgenc))
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 >calculate cost matrix
 rcost ← correctcheck - pgapout
@@ -32,7 +80,7 @@ for i ← layers-1…(-1) do
     >normalize attention cost vector
     attencosts ← NORMALIZE(acost,sureness)
     >create central mechanism cost vector
-    rcost[j] = concatenate([CA(rcost[j]),acost])
+    rcost[j] ← concatenate([CA(rcost[j]),acost])
   end for
 
   >backpropagate central mechanism
@@ -48,3 +96,5 @@ end for
 
 >add final cost matrix to identities
 identities ← identities + rcost*lr
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________
