@@ -18,7 +18,7 @@ for i ← 0…(layers) do
   kprod ← TENSOR(0,SHAPE(last))
   >run attention networks
   for j ← 0…(last.length) do
-    >output is [final layer,full unactivated network]
+    >output is [final layer,full activated network]
     output ← LINEAR(last[j],weights[i][j],biases[i][j])
     >scale output[0] to avg 0
     output[0] ← output[0] - TENSOR(0.5,SHAPE(output[0]))
@@ -29,7 +29,7 @@ for i ← 0…(layers) do
     >assign attention value
     kprod[j] ← output[0].SLICE(esize,2*esize)
 
-    >store unactivated for backpropagation
+    >store activated state for backpropagation
     neuronstore[i][j] ← output[1]
   end for
 
@@ -38,7 +38,7 @@ for i ← 0…(layers) do
   >scale entire last layer to avg 0
   atten[0] ← atten[0] - TENSOR(0.5,SHAPE(atten[0]))
 
-  >store unactivated for backpropagation
+  >store activated state for backpropagation
   apneur[i] ← atten[1]
 
   for j ← 0…(last.length) do
@@ -68,7 +68,7 @@ return SOFTMAX(NORMALIZE(encout[0],1),smtemperature)
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 
-IN LTEF:
+IN WEF:
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 >decode all iteration outputs
 for i ← 0…(last.length) do
