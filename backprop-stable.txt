@@ -3,22 +3,17 @@ for i ← weights.length-1…(-1) do
   newcost ← TENSOR(0,SHAPE(cost))
   for j ← 0…(weights[i].length) do
     for k ← 0…(weights[i][j].length) do
-      >overall activation derivative
-      gfd ← 1
-      if activate then 
-        gfd ← GETFUNCDERIV(neuronstore[i+1][k]) 
+      >declare backprop vars
+      aneur ← neuronstore[i][j]
+      gfd ← aneur*(1-aneur)
+      comb ← gfd*cost[k]*lr
+
+      >adjust weights, biases, and costs
+      weights[i][j][k] ← weights[i][j][k]+aneur*comb
+      if biases != false then
+      	biases[i][k] ← biases[i][k]+comb
       end if
-
-      >adjust weights
-      weights[i][j][k] ← weights[i][j][k] + 
-      cost[k]*gfd*ACTIVATE(neuronstore[i][j])*lr
-      
-      >adjust biases
-      biases[i][k] ← biases[i][k] + 
-      cost[k]*gfd*ACTIVATE(neuronstore[i][j])*lr
-
-      >add to new cost
-      newcost[j] ← newcost[j] + weights[i][j][k]*cost[k]*gfd
+      newcosts[j] ← weights[i][j][k]*comb/lr
     end for
   end for
   >assign cost to new cost
